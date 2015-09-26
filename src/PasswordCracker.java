@@ -13,7 +13,7 @@ public class PasswordCracker {
 	
 	public static void main(String [] args)
 	{
-		String passwd = "zzzzzz";
+		String passwd = "zaabaa";
 		String foundPassword = crackPassword(passwd);
 		System.out.println(foundPassword);
 	}
