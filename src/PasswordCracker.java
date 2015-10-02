@@ -7,15 +7,45 @@
  * @author apeer001
  *
  */
+
+import java.math.BigInteger;
+import java.security.*;
+
+// hashed
+// 2yMDuIEVLYaDgZMVZQRlW/:16653:0:99999:7:::
+
+
+// hased to hex  using the website
+// d3f5c15ec6cc85611f8242eb6aeaaac9
+
+
 public class PasswordCracker {
 	
 	private static final int maxIteration = 26;
 	
 	public static void main(String [] args)
 	{
-		String passwd = "zaabaa";
-		String foundPassword = crackPassword(passwd);
-		System.out.println(foundPassword);
+		String passwd = "passwd";
+		byte[] bytesOfMessage = passwd.getBytes();
+		
+		MessageDigest md;
+		try {
+			md = MessageDigest.getInstance("MD5");
+			byte[] array = md.digest(bytesOfMessage);
+			
+			StringBuffer sb = new StringBuffer();
+	        for (int i = 0; i < array.length; ++i) {
+	          sb.append(Integer.toHexString((array[i] & 0xFF) | 0x100).substring(1,3));
+	       }
+			
+			System.out.println(sb.toString());
+		} catch (NoSuchAlgorithmException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
+		//String foundPassword = crackPassword(passwd);
+		//System.out.println(foundPassword);
 	}
 	
 	// Password is going to be 6-8 characters [alpha only, lowercase]
@@ -84,6 +114,8 @@ public class PasswordCracker {
 										tempPos--;
 									}
 									// update last character
+					// Update test char array
+					
 									startPoint[tempPos]++;
 								}
 							} 
@@ -92,8 +124,6 @@ public class PasswordCracker {
 						}
 					}
 				} else if (checkIteratorNum == 1) {
-					// Update test char array
-					
 					if (testPassword.equals("zzzzzzz")) {
 						checkIteratorNum = 2;
 						startingPos = 7;
