@@ -3,9 +3,11 @@
  * Password cracking 
  * Lab 1
  * Section 22
- * @author pboyl001
- * @author apeer001
+ * @author pboyl001 - 861091443
+ * @author apeer001 - 861055341
  *
+ * READ THE README.TXT FILE INCLUDED IN THE ZIP FILE
+ * 
  */
 
 import java.math.BigInteger;
@@ -16,15 +18,6 @@ import java.util.regex.Pattern;
 import java.nio.charset.StandardCharsets;
 import java.util.Timer;
 
-
-// hashed
-// 2yMDuIEVLYaDgZMVZQRlW/:16653:0:99999:7:::
-
-
-// hased to hex  using the website
-// d3f5c15ec6cc85611f8242eb6aeaaac9
-
-
 public class PasswordCracker {
 	
 	private static final int maxIteration = 26;
@@ -33,6 +26,7 @@ public class PasswordCracker {
 	private static final String HEX_FINAL_PASS = "$1$hfT7jp2q$2yMDuIEVLYaDgZMVZQRlW/";
 	
 	private static final int ROUNDS = 1000;
+	
 	/** The Identifier of this crypt() variant. */
 	static final String MD5_PREFIX = "$1$";
 	
@@ -48,17 +42,13 @@ public class PasswordCracker {
 	public static void main(String [] args)
 	{
 		crackPassword(HEX_FINAL_PASS);
-		//System.out.println(foundPassword);
 	}
 	
 	public static void crackPassword(final String passwd) {
 		
 		Thread t1 = new Thread( new Runnable() { 
 			public void run() {
-		
-				long startTime = System.currentTimeMillis(); 
 				
-				int counter = 0;
 				char [] startPoint = new char[]{'a','a','a','a','a','a'};
 				
 				int startingPos = 5;
@@ -66,8 +56,6 @@ public class PasswordCracker {
 				
 				String currentCheckedPassword = "";
 				while(true){
-					counter++;
-
 					// get string from char array
 					String testPassword = "";
 					if (checkIteratorNum == 0){
@@ -82,18 +70,14 @@ public class PasswordCracker {
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
 						}
-					    //System.out.println("MD5: " + testPassword);
-					  
 					} 
-					
-					//System.out.println("running, current string: " + testPassword);
 					
 					// We have the string , do a compare
 					if(testPassword.equals(passwd)) {
 						System.out.println("MD5: " + testPassword);
 						foundPassword =  "Thread1: Found: " + currentCheckedPassword;
 						System.out.println(foundPassword);
-						return;
+						System.exit(0);
 					} else {
 						if (checkIteratorNum == 0){
 							if (currentCheckedPassword.equals("gmmmmm")) {
@@ -153,18 +137,14 @@ public class PasswordCracker {
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
 						}
-					    //System.out.println("MD5: " + testPassword);
-					  
 					}
-					
-					//System.out.println("running, current string: " + testPassword);
 					
 					// We have the string , do a compare
 					if(testPassword.equals(passwd)) {
 						System.out.println("MD5: " + testPassword);
 						foundPassword =  "Thread2: Found: " + currentCheckedPassword;
 						System.out.println(foundPassword);
-						return;
+						System.exit(0);
 					} else {
 						if (checkIteratorNum == 0){
 							if (currentCheckedPassword.equals("mzzzzz")) {
@@ -224,17 +204,14 @@ public class PasswordCracker {
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
 						}
-					    //System.out.println("MD5: " + testPassword);
-					  
 					} 
-					
-					//System.out.println("running, current string: " + testPassword);
-					
+	
 					// We have the string , do a compare
 					if(testPassword.equals(passwd)) {
 						System.out.println("MD5: " + testPassword);
 						foundPassword =  "Thread3: Found: " + currentCheckedPassword;
 						System.out.println(foundPassword);
+						System.exit(0);
 						return;
 					} else {
 						if (checkIteratorNum == 0){
@@ -295,17 +272,23 @@ public class PasswordCracker {
 						} catch (NoSuchAlgorithmException e) {
 							e.printStackTrace();
 						}
-					    //System.out.println("MD5: " + testPassword);
 					  
+					} else if (checkIteratorNum == 1) {
+						for (int k = 0; k < 7; k++) {
+							testPassword += startPoint[k];
+						}
+					} else if (checkIteratorNum == 2) {
+						for (int k = 0; k < 8; k++) {
+							testPassword += startPoint[k];
+						}
 					}
-					
-					//System.out.println("running, current string: " + testPassword);
 					
 					// We have the string , do a compare
 					if(testPassword.equals(passwd)) {
 						System.out.println("MD5: " + testPassword);
 						foundPassword =  "Thread4: Found: " + currentCheckedPassword;
 						System.out.println(foundPassword);
+						System.exit(0);
 						return;
 					} else {
 						if (checkIteratorNum == 0){
