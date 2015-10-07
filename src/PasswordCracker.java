@@ -14,6 +14,8 @@ import java.util.Arrays;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 import java.nio.charset.StandardCharsets;
+import java.util.Timer;
+
 
 // hashed
 // 2yMDuIEVLYaDgZMVZQRlW/:16653:0:99999:7:::
@@ -30,136 +32,320 @@ public class PasswordCracker {
 	private static final String SALT = "hfT7jp2q";
 	private static final String HEX_FINAL_PASS = "$1$hfT7jp2q$2yMDuIEVLYaDgZMVZQRlW/";
 	
-	
+	private static final int ROUNDS = 1000;
 	/** The Identifier of this crypt() variant. */
 	static final String MD5_PREFIX = "$1$";
 	
-	/** The number of rounds of the big loop. */
-	private static final int ROUNDS = 1000;
-	
 	private static final int BLOCKSIZE = 16;
+
 	
 	// Linux mapping for base64
 	static final String B64T = "./0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 	
+	static String foundPassword = null;
+	
 	
 	public static void main(String [] args)
 	{
-		String test = "aaaaba";
-		byte[] bytesOfMessage = test.getBytes(StandardCharsets.UTF_8);
-		try {
-			test = md5Crypt(bytesOfMessage, SALT, MD5_PREFIX);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		}
-		String foundPassword = crackPassword(test);
-		//String foundPassword = crackPassword(HEX_FINAL_PASS);
-		System.out.println(foundPassword);
+		crackPassword(HEX_FINAL_PASS);
+		//System.out.println(foundPassword);
 	}
 	
-	// Password is going to be 6-8 characters [alpha only, lowercase]
-	// MD5 hashing algorithm
-	
-	// /etc/passwd
-	// /etc/shadow
-	
-	// $1 = hashing algo
-	// $2 = SALT
-	// $3 = hashed password
-	// Crypto lib
-	// apache.commons.digest -> MD5
-	
-	public static String crackPassword(String passwd) {
-		char [] startPoint = new char[]{'a','a','a','a','a','a','a','a'};
+	public static void crackPassword(final String passwd) {
 		
-		int startingPos = 5;
-		int checkIteratorNum = 0;
+		Thread t1 = new Thread( new Runnable() { 
+			public void run() {
 		
-		
-		
-		String currentCheckedPassword = "";
-		while(true){
-			
-			// get string from char array
-			String testPassword = "";
-			if (checkIteratorNum == 0){
-				for (int k = 0; k < 6; k++) {
-					testPassword += startPoint[k];
-				}
+				long startTime = System.currentTimeMillis(); 
 				
-				currentCheckedPassword = testPassword;
-				byte[] bytesOfMessage = testPassword.getBytes(StandardCharsets.UTF_8);
-				try {
-					testPassword = md5Crypt(bytesOfMessage, SALT, MD5_PREFIX);
-				} catch (NoSuchAlgorithmException e) {
-					e.printStackTrace();
-				}
-			    //System.out.println("MD5: " + testPassword);
-			  
-			} else if (checkIteratorNum == 1) {
-				for (int k = 0; k < 7; k++) {
-					testPassword += startPoint[k];
-				}
-			} else if (checkIteratorNum == 2) {
-				for (int k = 0; k < 8; k++) {
-					testPassword += startPoint[k];
-				}
-			}
-			
-			//System.out.println("running, current string: " + testPassword);
-			
-			// We have the string , do a compare
-			if(testPassword.equals(passwd)) {
-				System.out.println("MD5: " + testPassword);
-				return "Found: " + currentCheckedPassword;
-			} else {
-				if (checkIteratorNum == 0){
-					if (currentCheckedPassword.equals("zzzzzz")) {
-						checkIteratorNum = 1;
-						startingPos = 6;
-						
-						startPoint = new char[]{'a','a','a','a','a','a','a','a'};
-						
-						return "NOT FOUND";
-					} else {
-						// Update test char array
-						if (startPoint[startingPos] == 'z') {
-							if (startingPos != 0) {
-								startPoint[startingPos] = 'a';
-								
-								int tempPos = startingPos - 1;
-								if (startPoint[tempPos] != 'z') {
-									startPoint[tempPos]++;
-								} else {
-									while(startPoint[tempPos] == 'z') {
-										startPoint[tempPos] = 'a';
-										tempPos--;
-									}
-									// update last character
-									startPoint[tempPos]++;
-								}
-							} 
-						} else {
-							startPoint[startingPos]++;
+				int counter = 0;
+				char [] startPoint = new char[]{'a','a','a','a','a','a'};
+				
+				int startingPos = 5;
+				int checkIteratorNum = 0;
+				
+				String currentCheckedPassword = "";
+				while(true){
+					counter++;
+
+					// get string from char array
+					String testPassword = "";
+					if (checkIteratorNum == 0){
+						for (int k = 0; k < 6; k++) {
+							testPassword += startPoint[k];
 						}
-					}
-				} else if (checkIteratorNum == 1) {
-					// Update test char array
+						
+						currentCheckedPassword = testPassword;
+						byte[] bytesOfMessage = testPassword.getBytes(StandardCharsets.UTF_8);
+						try {
+							testPassword = md5Crypt(bytesOfMessage, SALT, MD5_PREFIX);
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						}
+					    //System.out.println("MD5: " + testPassword);
+					  
+					} 
 					
-					if (testPassword.equals("zzzzzzz")) {
-						checkIteratorNum = 2;
-						startingPos = 7;
-						return "!!!FAILED!!!";
-					}
-				} else if (checkIteratorNum == 2) {
-					// Update test char array
+					//System.out.println("running, current string: " + testPassword);
 					
-					if (testPassword.equals("zzzzzzzz")) {
-						return "!!!FAILED!!!";
+					// We have the string , do a compare
+					if(testPassword.equals(passwd)) {
+						System.out.println("MD5: " + testPassword);
+						foundPassword =  "Thread1: Found: " + currentCheckedPassword;
+						System.out.println(foundPassword);
+						return;
+					} else {
+						if (checkIteratorNum == 0){
+							if (currentCheckedPassword.equals("gmmmmm")) {
+								foundPassword = "Thread1: NOT FOUND";
+								System.out.println(foundPassword);
+								return;
+							} else {
+								// Update test char array
+								if (startPoint[startingPos] == 'z') {
+									if (startingPos != 0) {
+										startPoint[startingPos] = 'a';
+										
+										int tempPos = startingPos - 1;
+										if (startPoint[tempPos] != 'z') {
+											startPoint[tempPos]++;
+										} else {
+											while(startPoint[tempPos] == 'z') {
+												startPoint[tempPos] = 'a';
+												tempPos--;
+											}
+											// update last character
+											startPoint[tempPos]++;
+										}
+									} 
+								} else {
+									startPoint[startingPos]++;
+								}
+							}
+						} 
 					}
 				}
 			}
-		}
+		});
+		
+		Thread t2 = new Thread( new Runnable() { 
+			public void run() {
+		
+				char [] startPoint = new char[]{'g','m','m','m','m','n'};
+				
+				int startingPos = 5;
+				int checkIteratorNum = 0;
+				
+				String currentCheckedPassword = "";
+				while(true){
+					
+					// get string from char array
+					String testPassword = "";
+					if (checkIteratorNum == 0){
+						for (int k = 0; k < 6; k++) {
+							testPassword += startPoint[k];
+						}
+						
+						currentCheckedPassword = testPassword;
+						byte[] bytesOfMessage = testPassword.getBytes(StandardCharsets.UTF_8);
+						try {
+							testPassword = md5Crypt(bytesOfMessage, SALT, MD5_PREFIX);
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						}
+					    //System.out.println("MD5: " + testPassword);
+					  
+					}
+					
+					//System.out.println("running, current string: " + testPassword);
+					
+					// We have the string , do a compare
+					if(testPassword.equals(passwd)) {
+						System.out.println("MD5: " + testPassword);
+						foundPassword =  "Thread2: Found: " + currentCheckedPassword;
+						System.out.println(foundPassword);
+						return;
+					} else {
+						if (checkIteratorNum == 0){
+							if (currentCheckedPassword.equals("mzzzzz")) {
+								foundPassword = "Thread2: NOT FOUND";
+								System.out.println(foundPassword);
+								return;
+							} else {
+								// Update test char array
+								if (startPoint[startingPos] == 'z') {
+									if (startingPos != 0) {
+										startPoint[startingPos] = 'a';
+										
+										int tempPos = startingPos - 1;
+										if (startPoint[tempPos] != 'z') {
+											startPoint[tempPos]++;
+										} else {
+											while(startPoint[tempPos] == 'z') {
+												startPoint[tempPos] = 'a';
+												tempPos--;
+											}
+											// update last character
+											startPoint[tempPos]++;
+										}
+									} 
+								} else {
+									startPoint[startingPos]++;
+								}
+							}
+						} 
+					}
+				}
+			}
+		});
+		
+		Thread t3 = new Thread( new Runnable() { 
+			public void run() {
+		
+				char [] startPoint = new char[]{'n','a','a','a','a','a'};
+				
+				int startingPos = 5;
+				int checkIteratorNum = 0;
+				
+				String currentCheckedPassword = "";
+				while(true){
+					
+					// get string from char array
+					String testPassword = "";
+					if (checkIteratorNum == 0){
+						for (int k = 0; k < 6; k++) {
+							testPassword += startPoint[k];
+						}
+						
+						currentCheckedPassword = testPassword;
+						byte[] bytesOfMessage = testPassword.getBytes(StandardCharsets.UTF_8);
+						try {
+							testPassword = md5Crypt(bytesOfMessage, SALT, MD5_PREFIX);
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						}
+					    //System.out.println("MD5: " + testPassword);
+					  
+					} 
+					
+					//System.out.println("running, current string: " + testPassword);
+					
+					// We have the string , do a compare
+					if(testPassword.equals(passwd)) {
+						System.out.println("MD5: " + testPassword);
+						foundPassword =  "Thread3: Found: " + currentCheckedPassword;
+						System.out.println(foundPassword);
+						return;
+					} else {
+						if (checkIteratorNum == 0){
+							if (currentCheckedPassword.equals("tmmmmm")) {
+								foundPassword = "Thread3: NOT FOUND";
+								System.out.println(foundPassword);
+								return;
+							} else {
+								// Update test char array
+								if (startPoint[startingPos] == 'z') {
+									if (startingPos != 0) {
+										startPoint[startingPos] = 'a';
+										
+										int tempPos = startingPos - 1;
+										if (startPoint[tempPos] != 'z') {
+											startPoint[tempPos]++;
+										} else {
+											while(startPoint[tempPos] == 'z') {
+												startPoint[tempPos] = 'a';
+												tempPos--;
+											}
+											// update last character
+											startPoint[tempPos]++;
+										}
+									} 
+								} else {
+									startPoint[startingPos]++;
+								}
+							}
+						} 
+					}
+				}
+			}
+		});
+		
+		Thread t4 = new Thread( new Runnable() { 
+			public void run() {
+		
+				char [] startPoint = new char[]{'t','m','m','m','m','n'};
+				
+				int startingPos = 5;
+				int checkIteratorNum = 0;
+				
+				String currentCheckedPassword = "";
+				while(true){
+					
+					// get string from char array
+					String testPassword = "";
+					if (checkIteratorNum == 0){
+						for (int k = 0; k < 6; k++) {
+							testPassword += startPoint[k];
+						}
+						
+						currentCheckedPassword = testPassword;
+						byte[] bytesOfMessage = testPassword.getBytes(StandardCharsets.UTF_8);
+						try {
+							testPassword = md5Crypt(bytesOfMessage, SALT, MD5_PREFIX);
+						} catch (NoSuchAlgorithmException e) {
+							e.printStackTrace();
+						}
+					    //System.out.println("MD5: " + testPassword);
+					  
+					}
+					
+					//System.out.println("running, current string: " + testPassword);
+					
+					// We have the string , do a compare
+					if(testPassword.equals(passwd)) {
+						System.out.println("MD5: " + testPassword);
+						foundPassword =  "Thread4: Found: " + currentCheckedPassword;
+						System.out.println(foundPassword);
+						return;
+					} else {
+						if (checkIteratorNum == 0){
+							if (currentCheckedPassword.equals("zzzzzz")) {
+								foundPassword = "Thread4: NOT FOUND";
+								System.out.println(foundPassword);
+								return;
+							} else {
+								// Update test char array
+								if (startPoint[startingPos] == 'z') {
+									if (startingPos != 0) {
+										startPoint[startingPos] = 'a';
+										
+										int tempPos = startingPos - 1;
+										if (startPoint[tempPos] != 'z') {
+											startPoint[tempPos]++;
+										} else {
+											while(startPoint[tempPos] == 'z') {
+												startPoint[tempPos] = 'a';
+												tempPos--;
+											}
+											// update last character
+											startPoint[tempPos]++;
+										}
+									} 
+								} else {
+									startPoint[startingPos]++;
+								}
+							}
+						} 
+					}
+				}
+			}
+		});
+		
+		// Start the threads
+		t1.start();
+		t2.start();
+		t3.start();
+		t4.start();
 	}
 
 	
